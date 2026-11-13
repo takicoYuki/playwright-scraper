@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - name: デモサイトに対して CLI を実行
+        env:
+          SCRAPER_USER: demo
+          SCRAPER_PASSWORD: demo1234
+        run: |
+          npm run demo &
+          sleep 2
+          npm run scrape -- --out output/products.csv --screenshots output/screenshots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scraped-output
+          path: output/
